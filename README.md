@@ -20,17 +20,16 @@ call asyncomplete#register_source(asyncomplete#sources#buffer#get_source_options
     \ 'completor': function('asyncomplete#sources#buffer#completor'),
     \ 'config': {
     \    'max_buffer_size': 5000000,
+    \    'clear_cache': 1,
+    \    'min_word_len': 3,
     \  },
     \ }))
 ```
-Note: config is optional. `max_buffer_size` defaults to 5000000 (5mb). If the buffer size exceeds `max_buffer_size` it is ignored. Set `max_buffer_size` to -1 for unlimited buffer size.
 
-### Options
-
-Clear buffer word cache on events (default: `1`)
-```vim
-let g:asyncomplete_buffer_clear_cache = 1
-```
+Note: config is optional.  
+- `max_buffer_size` defaults to 5000000 (5mb). If the buffer size exceeds `max_buffer_size`, completion that buffer is ignored. Set `max_buffer_size` to -1 for unlimited buffer size.
+- `clear_cache` defaults to 1. Set `clear_cache` to 0 for disabled cache clear.
+- `min_word_len` defaults to 3. Word with `min_word_len` or more letters are subject to completion.
 
 ### Credits
 All the credit goes to the following projects
