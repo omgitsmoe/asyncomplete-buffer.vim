@@ -33,9 +33,13 @@ function! asyncomplete#sources#buffer#completor(info, ctx)
 endfunction
 
 function! asyncomplete#sources#buffer#get_source_options(opts)
+  " events where the word lists gets updated
+  " could add 'TextChangedI' but might cause performance problems and we
+  " already have CursorHoldI which updates after cursor paused for
+  " 'updatetime' amount
   return extend({
     \ 'priority': 10,
-    \ 'events': ['BufEnter', 'BufWritePost'],
+    \ 'events': ['CursorHold', 'CursorHoldI', 'BufEnter', 'BufWritePost'],
     \ 'on_event': function('s:on_event'),
     \}, a:opts)
 endfunction
