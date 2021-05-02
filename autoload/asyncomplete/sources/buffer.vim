@@ -1,6 +1,7 @@
 " documents has a word list for each buffer.
 " key is bufnr and value is a word list.
 let s:documents = {}
+let g:asyncomplete_buffer_word_rx_class = get(g:, 'asyncomplete_buffer_word_rx_class', '[:alnum:]')
 
 function! asyncomplete#sources#buffer#completor(info, ctx)
   let l:bufnr = a:ctx['bufnr']
@@ -14,8 +15,7 @@ function! asyncomplete#sources#buffer#completor(info, ctx)
   let l:col = a:ctx['col']
   let l:typed = a:ctx['typed']
 
-  " \k represents iskeyword.
-  let l:kw = matchstr(l:typed, '\k\+$')
+  let l:kw = matchstr(l:typed, '[' . g:asyncomplete_buffer_word_rx_class . ']\+$')
   let l:kwlen = len(l:kw)
   
   " around: matching word in current buffer
@@ -72,7 +72,7 @@ function! s:refresh_keywords(info, bufnr) abort
   let l:pos = 0
   let l:min_word_len = s:get_config_val(a:info, 'min_word_len', 3)
   while l:pos != -1
-    let [l:word, l:_, l:pos] = s:matchstrpos(l:text, '\k\+', l:pos)
+    let [l:word, l:_, l:pos] = s:matchstrpos(l:text, '[^' . g:asyncomplete_buffer_word_rx_class . ']\+', l:pos)
     if len(l:word) < l:min_word_len
       continue
     endif
