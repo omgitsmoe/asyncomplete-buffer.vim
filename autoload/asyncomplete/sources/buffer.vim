@@ -39,7 +39,7 @@ function! asyncomplete#sources#buffer#get_source_options(opts)
   " 'updatetime' amount
   return extend({
     \ 'priority': 10,
-    \ 'events': ['CursorHold', 'CursorHoldI', 'BufEnter', 'BufWritePost'],
+    \ 'events': ['CursorHold', 'CursorHoldI', 'BufWinEnter', 'BufWritePost'],
     \ 'on_event': function('s:on_event'),
     \}, a:opts)
 endfunction
@@ -70,14 +70,22 @@ function! s:refresh_keywords(info, bufnr) abort
   
   let l:text = join(getline(1, '$'), "\n")
   let l:pos = 0
+  let l:end = len(l:text)
   let l:min_word_len = s:get_config_val(a:info, 'min_word_len', 3)
-  while l:pos != -1
-    let [l:word, l:_, l:pos] = s:matchstrpos(l:text, '\k\+', l:pos)
-    if len(l:word) < l:min_word_len
+  while l:pos < l:end
+    let l:word = matchstr(l:text, '\k\+', l:pos)
+    let l:word_len = len(l:word)
+    let l:pos += l:word_len
+    " we can't find a match anymore but still haven't reached the end
+    if l:word_len == 0
+        break
+    endif
+    if l:word_len < l:min_word_len
       continue
     endif
     let s:documents[a:bufnr][l:word] = 1
   endwhile
+
   call asyncomplete#log('asyncomplete#sources#buffer', 's:refresh_keywords() complete', a:bufnr)
 endfunction
 
