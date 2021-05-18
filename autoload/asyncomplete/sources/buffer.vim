@@ -69,22 +69,28 @@ function! s:refresh_keywords(info, bufnr) abort
   endif
   
   let l:text = join(getline(1, '$'), "\n")
-  let l:pos = 0
-  let l:end = len(l:text)
   let l:min_word_len = s:get_config_val(a:info, 'min_word_len', 3)
-  while l:pos < l:end
-    let l:word = matchstr(l:text, '\k\+', l:pos)
-    let l:word_len = len(l:word)
-    let l:pos += l:word_len
-    " we can't find a match anymore but still haven't reached the end
-    if l:word_len == 0
-        break
-    endif
-    if l:word_len < l:min_word_len
+  " \_s*\<
+  " \< matches the beginning of a word, where 'iskeyword' specifies what a
+  " word char is (we use \k to match the typed word so far) which is character
+  " class based on 'iskeyword'
+  " -> splits "away" whitespace (including \n, \s would not match that) between word chars
+  " [^[:keyword:]]\+
+  " -> splits on non-keyword chars
+  " tags file with length 367418 ~804KB
+  " 6391904 '[^[:keyword:]]\+' 0.6454s 0.636s
+  " 7034876 '\_s*\<' 7124673 0.73s 0.71s
+  " 6465483 '\W\+' 0.625019s 0.635
+  " let t = reltime()
+  for l:word in split(l:text, '[^[:keyword:]]\+')
+    if len(l:word) < l:min_word_len
       continue
     endif
+
     let s:documents[a:bufnr][l:word] = 1
-  endwhile
+  endfor
+
+  " echom 'refresh took ' . reltimestr(reltime(t))
 
   call asyncomplete#log('asyncomplete#sources#buffer', 's:refresh_keywords() complete', a:bufnr)
 endfunction
@@ -95,12 +101,3 @@ function! s:get_config_val(info, key, defaultVal) abort
   endif
   return a:defaultVal
 endfunction
-
-function! s:matchstrpos(expr, pattern, start) abort
-  if exists('*matchstrpos')
-    return matchstrpos(a:expr, a:pattern, a:start)
-  else
-    return [matchstr(a:expr, a:pattern, a:start), match(a:expr, a:pattern, a:start), matchend(a:expr, a:pattern, a:start)]
-  endif
-endfunction
-
