@@ -7,7 +7,10 @@ function! asyncomplete#sources#buffer#completor(info, ctx)
   if !has_key(s:documents, l:bufnr)
     " here is a workaround.
     " on_event triggered by BufEnter when openning a file does not work for now.
-    call s:refresh_keywords(a:info, l:bufnr)
+    " NOTE: check here for buffer size as well
+    if !s:is_max_buffer_size_exceeded(a:info)
+        call s:refresh_keywords(a:info, l:bufnr)
+    endif
   endif
 
   let l:name = a:info['name']
@@ -46,6 +49,7 @@ endfunction
 
 function! s:is_max_buffer_size_exceeded(info) abort
   let l:max_buffer_size = s:get_config_val(a:info, 'max_buffer_size', 5000000) " default 5mb
+
   if l:max_buffer_size != -1
     let l:buffer_size = line2byte(line('$') + 1)
     if l:buffer_size > l:max_buffer_size
